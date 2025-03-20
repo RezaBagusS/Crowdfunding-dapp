@@ -48,20 +48,24 @@ contract CrowdFund is Ownable {
         userContract = IUser(_userContract);
     }
 
+    // MODIFIER
+    modifier onlyRegister() {
+        IUser.UserStruct memory user = userContract.getUser(msg.sender);
+        require(bytes(user.name).length > 0, "User not registered");
+        _;
+    }
+
     // FUNCTION MEMBUAT CAMPAIGN BARU
     function createCampaign(
         string memory _nameCampaign,
         string memory _description,
         uint _targetFund,
         uint _deadline
-    ) public {
-
-        IUser.UserStruct memory user = userContract.getUser(msg.sender);
-        require(bytes(user.name).length > 0, "User not registered");
+    ) public onlyRegister {
 
         require(_deadline > block.timestamp, "Deadline must be in the future");
 
-        uint campaignId = crowdFunds[msg.sender].length - 1;
+        uint campaignId = crowdFunds[msg.sender].length + 1;
 
         CrowdFundStruct memory newCampaign = CrowdFundStruct({
             creator: msg.sender,
