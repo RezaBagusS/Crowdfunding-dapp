@@ -1,0 +1,111 @@
+---
+
+### Proyek: Crowdfunding dApp
+#### Deskripsi
+Buat sebuah decentralized application (dApp) untuk 
+crowdfunding berbasis blockchain Ethereum. 
+Pengguna dapat membuat kampanye crowdfunding, 
+mendonasikan ETH ke kampanye tersebut, dan 
+pemilik kampanye dapat menarik dana jika target tercapai. 
+Fokusnya adalah pada fungsionalitas dasar, keamanan, dan 
+interaksi sederhana dengan front-end.
+
+---
+
+### Requirements
+
+#### 1. Smart Contract (Solidity)
+Buat satu atau lebih *smart contract* dengan fitur berikut:
+- **Membuat Kampanye**: ✅
+  - Pengguna dapat membuat kampanye dengan menentukan:
+    - Nama kampanye (string). ✅
+    - Deskripsi singkat (string). ✅
+    - Target dana (dalam wei/ETH). ✅
+    - Batas waktu (timestamp atau block number). ✅
+  - Hanya pembuat kampanye yang bisa mengelola kampanye tersebut.
+- **Donasi**:
+  - Pengguna dapat mendonasikan ETH ke kampanye tertentu.
+  - Donasi hanya diterima jika kampanye belum melewati batas waktu.
+  - Catat jumlah total donasi dan daftar donatur (opsional: simpan alamat donatur dan jumlah donasi).
+- **Penarikan Dana**:
+  - Pemilik kampanye dapat menarik dana hanya jika:
+    - Target dana tercapai.
+    - Batas waktu telah lewat.
+  - Jika target tidak tercapai, donatur bisa meminta pengembalian dana (refund).
+- **Keamanan**:
+  - Cegah *reentrancy attack* (gunakan pola *checks-effects-interactions* atau *nonReentrant modifier* dari OpenZeppelin).
+  - Pastikan hanya pemilik kampanye yang bisa menarik dana.
+- **Event**:
+  - Emit event untuk:
+    - Pembuatan kampanye.
+    - Donasi diterima.
+    - Dana ditarik.
+    - Refund dilakukan (jika ada).
+
+#### 2. Testing
+- Tulis unit test untuk *smart contract* yang mencakup:
+  - Membuat kampanye berhasil.
+  - Donasi berhasil dan gagal (misalnya, setelah batas waktu).
+  - Penarikan dana berhasil (jika target tercapai) dan gagal (jika belum tercapai).
+  - Refund berhasil (jika target tidak tercapai).
+
+#### 3. Front-End (dApp)
+- Buat antarmuka sederhana dengan fitur:
+  - Form untuk membuat kampanye baru.
+  - Daftar kampanye yang ada (tampilkan nama, deskripsi, target, dana terkumpul, dan status).
+  - Tombol untuk donasi (input jumlah ETH).
+  - Tombol untuk menarik dana (hanya untuk pemilik kampanye).
+  - Tombol untuk refund (jika target tidak tercapai).
+- Hubungkan front-end ke *smart contract* menggunakan library JavaScript.
+
+#### 4. Deployment
+- Deploy *smart contract* ke testnet Ethereum (misalnya, Sepolia atau Rinkeby).
+- Pastikan front-end bisa berinteraksi dengan kontrak yang sudah di-deploy.
+
+---
+
+### Tools dan Libraries yang Dibutuhkan
+#### Smart Contract Development
+- **Solidity**: Bahasa pemrograman untuk *smart contract* (gunakan versi stabil terbaru, misalnya 0.8.x).
+- **Hardhat**: Framework untuk kompilasi, testing, dan deployment (alternatif: Truffle).
+- **OpenZeppelin**: Library untuk keamanan (gunakan `Ownable` untuk kontrol akses dan `ReentrancyGuard` untuk mencegah *reentrancy*).
+- **Chai/Mocha**: Untuk menulis unit test di Hardhat.
+
+#### Front-End Development
+- **React.js**: Framework untuk membangun UI (alternatif: Vue.js atau vanilla JavaScript).
+- **Ethers.js**: Library untuk berinteraksi dengan Ethereum dan *smart contract* (alternatif: Web3.js).
+- **MetaMask**: Wallet untuk mengelola akun pengguna dan transaksi di browser.
+- **CSS**: Untuk styling sederhana (opsional: gunakan Tailwind CSS atau Bootstrap).
+
+#### Deployment dan Infrastruktur
+- **Infura atau Alchemy**: Penyedia node untuk koneksi ke testnet Ethereum.
+- **Testnet ETH**: Dapatkan dari faucet seperti Sepolia Faucet untuk testing.
+- **Hardhat Network**: Untuk testing lokal sebelum deploy ke testnet.
+
+---
+
+### Catatan Tambahan
+- Gunakan pendekatan modular (misalnya, pisahkan logika kampanye ke kontrak terpisah jika perlu).
+- Pastikan kode efisien dalam penggunaan gas.
+- Dokumentasikan kode dengan komentar untuk menjelaskan fungsi utama.
+
+---
+
+### Langkah Pengerjaan (Panduan Umum)
+1. Tulis *smart contract* di Solidity dan uji dengan Hardhat.
+2. Deploy ke testnet menggunakan Hardhat dan simpan *contract address* serta ABI.
+3. Buat front-end React yang terhubung ke kontrak menggunakan Ethers.js.
+4. Uji secara menyeluruh di lokal dan testnet.
+5. Simpan kode di GitHub (opsional) dan siapkan untuk ditunjukkan.
+
+---
+
+### Penilaian
+Setelah selesai, kamu bisa menunjukkan hasilnya kepada saya (misalnya, kode atau link ke GitHub). Saya akan menilai berdasarkan:
+- Fungsi sesuai *requirements*.
+- Keamanan kode (*smart contract*).
+- Kualitas testing.
+- Kemudahan penggunaan front-end.
+- Efisiensi dan kebersihan kode.
+
+Silakan mulai mengerjakan! Jika ada pertanyaan tentang *requirements* atau tools saat proses, jangan ragu untuk bertanya. Semoga sukses!
