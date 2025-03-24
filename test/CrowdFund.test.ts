@@ -48,6 +48,9 @@ describe('CrowdFund', function () {
 
         // Verify campaign details
         const campaign = await crowdFund.crowdFunds(user.address, 0);
+        const logCampaign = await crowdFund.crowdFunds;
+        console.log(logCampaign);
+        
         expect(campaign.creator).to.equal(user.address);
         expect(campaign.campaignId).to.equal(1);
         expect(campaign.nameCampaign).to.equal(nameCampaign);
@@ -79,7 +82,7 @@ describe('CrowdFund', function () {
         expect(campaign.deadline).to.equal(newDeadline);
     });
 
-    it("should only update non-empty fields", async function () {
+    it("Should only update non-empty fields", async function () {
 
         const campaignId = 1;
         const newName = ""; // Kosong, tidak update
@@ -105,5 +108,20 @@ describe('CrowdFund', function () {
         expect(campaign.deadline).to.equal(newDeadline);
 
     });
+
+    it("Should delete the campaign successfully by campaignId", async () => {
+        
+        await crowdFund.connect(user).createCampaign("#1", "Description 1", ethers.parseEther("1"), Math.floor(Date.now() / 1000) + 86400);
+        await crowdFund.connect(user).createCampaign("#2", "Description 2", ethers.parseEther("1.5"), Math.floor(Date.now() / 1000) + 86400);
+        await crowdFund.connect(user).createCampaign("#3", "Description 3", ethers.parseEther("1"), Math.floor(Date.now() / 1000) + 86400);
+
+        let campaigns = await crowdFund.connect(user).getAllCampaign();
+        expect(campaigns.length).to.equal(4);
+        
+        await crowdFund.connect(user).deleteCampaign(1);
+        
+        let newCampaigns = await crowdFund.connect(user).getAllCampaign();
+        expect(newCampaigns.length).to.equal(3);
+    })
 
 });

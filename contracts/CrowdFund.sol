@@ -28,7 +28,7 @@ contract CrowdFund is Ownable {
         uint _targetFund,
         uint _deadline
     );
-    
+
     event CampaignUpdated(
         uint indexed campaignId,
         string _nameCampaign,
@@ -62,6 +62,17 @@ contract CrowdFund is Ownable {
         IUser.UserStruct memory user = userContract.getUser(msg.sender);
         require(bytes(user.name).length > 0, "User not registered");
         _;
+    }
+
+    // FUNCTION GET ALL CAMPAIGN
+    function getAllCampaign()
+        public
+        view
+        onlyRegister
+        returns (CrowdFundStruct[] memory)
+    {
+        CrowdFundStruct[] storage campaigns = crowdFunds[msg.sender];
+        return campaigns;
     }
 
     // FUNCTION MEMBUAT CAMPAIGN BARU
@@ -138,5 +149,27 @@ contract CrowdFund is Ownable {
             _targetFund,
             _deadline
         );
+    }
+
+    // FUNCTION DELETE CAMPAIGN
+    function deleteCampaign(uint _campaignId) public onlyRegister {
+        require(_campaignId > 0, "Campaign ID Not Found");
+
+        CrowdFundStruct[] storage campaigns = crowdFunds[msg.sender];
+        bool found = false;
+
+
+        for (uint256 i = 0; i < campaigns.length; i++) {
+            if (campaigns[i].campaignId == _campaignId) {
+                found = true;
+
+                for (uint256 j = i; j < campaigns.length - 1; j++) {
+                    campaigns[j] = campaigns[j + 1];
+                }
+
+                campaigns.pop();
+                break;
+            }
+        }
     }
 }
