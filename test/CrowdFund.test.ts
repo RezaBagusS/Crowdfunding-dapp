@@ -118,7 +118,14 @@ describe('CrowdFund', function () {
         let campaigns = await crowdFund.connect(user).getAllCampaign();
         expect(campaigns.length).to.equal(4);
         
-        await crowdFund.connect(user).deleteCampaign(1);
+        const _campaignId = 1;
+
+        await expect(
+            crowdFund.connect(user).deleteCampaign(_campaignId)
+        ).to.emit(crowdFund, "CampaignDeleted")
+            .withArgs(
+                _campaignId,
+            );
         
         let newCampaigns = await crowdFund.connect(user).getAllCampaign();
         expect(newCampaigns.length).to.equal(3);

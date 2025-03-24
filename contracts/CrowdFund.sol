@@ -37,6 +37,10 @@ contract CrowdFund is Ownable {
         uint _deadline
     );
 
+    event CampaignDeleted(
+        uint indexed _campaignId
+    );
+
     // STRUCT
     struct CrowdFundStruct {
         address creator;
@@ -171,5 +175,7 @@ contract CrowdFund is Ownable {
                 break;
             }
         }
+
+        emit CampaignDeleted(_campaignId);
     }
 }
