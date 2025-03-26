@@ -26,13 +26,15 @@ describe('CrowdFund', function () {
 
         // Get signers
         [owner, user, user2] = await ethers.getSigners();
+        
     });
 
     it("Should create a new Campaign", async () => {
 
         // Register user
         await userContract.connect(user).setUser("User", "user1@gmail.com");
-
+        await userContract.connect(user2).setUser("User2", "user2@gmail.com");
+        
         // Args
         const nameCampaign = "Galang Dana Pribadi";
         const description = "-";
@@ -48,8 +50,6 @@ describe('CrowdFund', function () {
 
         // Verify campaign details
         const campaign = await crowdFund.crowdFunds(user.address, 0);
-        const logCampaign = await crowdFund.crowdFunds;
-        console.log(logCampaign);
         
         expect(campaign.creator).to.equal(user.address);
         expect(campaign.campaignId).to.equal(1);
@@ -59,6 +59,16 @@ describe('CrowdFund', function () {
         expect(campaign.currentFund).to.equal(0);
         expect(campaign.deadline).to.equal(deadline);
     });
+
+    it("Should show all campaign by creators", async () => {
+        const campaigns = await crowdFund.connect(user).getAllCampaignByCreator(1,5);
+        expect(campaigns.length).to.equal(1);
+    })
+
+    it("Should show total campaign by creators", async () => {
+        const campaigns = await crowdFund.connect(user).getTotalCampaignsByCreator();
+        expect(campaigns).to.equal(1);
+    })
 
     it("Should update campaign details successfully", async () => {
 
@@ -114,10 +124,9 @@ describe('CrowdFund', function () {
         await crowdFund.connect(user).createCampaign("#1", "Description 1", ethers.parseEther("1"), Math.floor(Date.now() / 1000) + 86400);
         await crowdFund.connect(user).createCampaign("#2", "Description 2", ethers.parseEther("1.5"), Math.floor(Date.now() / 1000) + 86400);
         await crowdFund.connect(user).createCampaign("#3", "Description 3", ethers.parseEther("1"), Math.floor(Date.now() / 1000) + 86400);
+        await crowdFund.connect(user).createCampaign("#4", "Description 4", ethers.parseEther("1"), Math.floor(Date.now() / 1000) + 86400);
+        await crowdFund.connect(user).createCampaign("#5", "Description 5", ethers.parseEther("1"), Math.floor(Date.now() / 1000) + 86400);
 
-        let campaigns = await crowdFund.connect(user).getAllCampaignByCreator();
-        expect(campaigns.length).to.equal(4);
-        
         const _campaignId = 1;
 
         await expect(
@@ -127,8 +136,21 @@ describe('CrowdFund', function () {
                 _campaignId,
             );
         
-        let newCampaigns = await crowdFund.connect(user).getAllCampaignByCreator();
-        expect(newCampaigns.length).to.equal(3);
+        let newCampaigns = await crowdFund.connect(user).getAllCampaignByCreator(1,10);
+        expect(newCampaigns.length).to.equal(5);
+    })
+
+    it("Should show all campaign for PUBLIC", async () => {
+
+        await crowdFund.connect(user2).createCampaign("#6", "Description 6", ethers.parseEther("1"), Math.floor(Date.now() / 1000) + 86400);
+
+        const campaigns = await crowdFund.connect(user2).getAllCampaign(1,10);
+        expect(campaigns.length).to.equal(6);
+    })
+
+    it("Should show total campaign for PUBLIC", async () => {
+        const campaigns = await crowdFund.connect(user2).getTotalCampaigns();
+        expect(campaigns).to.equal(6);
     })
 
 });

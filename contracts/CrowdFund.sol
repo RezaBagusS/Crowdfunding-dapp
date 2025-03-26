@@ -91,7 +91,7 @@ contract CrowdFund is Ownable {
         CrowdFundStruct[] storage campaigns = crowdFunds[msg.sender];
         uint totalCampaigns = campaigns.length;
 
-        uint start = _page * _perPage;
+        uint start = (_page - 1) * _perPage;
         if (start >= totalCampaigns) {
             return new CampaignSummary[](0);
         }
@@ -136,7 +136,7 @@ contract CrowdFund is Ownable {
             totalCampaigns += crowdFunds[creators[i]].length;
         }
 
-        uint start = _page * _perPage;
+        uint start = (_page - 1) * _perPage;
         if (start >= totalCampaigns) {
             return new CrowdFundStruct[](0); 
         }
@@ -265,6 +265,9 @@ contract CrowdFund is Ownable {
     function deleteCampaign(uint _campaignId) public onlyRegister {
         require(_campaignId > 0, "Campaign ID Not Found");
 
+        uint totalCampaign = getTotalCampaignsByCreator();
+        require(totalCampaign > 0, "You dont have any campaign");
+
         CrowdFundStruct[] storage campaigns = crowdFunds[msg.sender];
         bool found = false;
 
@@ -280,6 +283,8 @@ contract CrowdFund is Ownable {
                 break;
             }
         }
+
+        require(found, "Campaign not found!!");
 
         emit CampaignDeleted(_campaignId);
     }
