@@ -37,12 +37,26 @@ contract CrowdFund is Ownable {
         uint _deadline
     );
 
-    event CampaignDeleted(
-        uint indexed _campaignId
-    );
+    event CampaignDeleted(uint indexed _campaignId);
 
     // STRUCT
     struct CrowdFundStruct {
+        address creator;
+        uint campaignId;
+        string nameCampaign;
+        string description;
+        uint targetFund;
+        uint currentFund;
+        uint deadline;
+        DonationDetailStruct[] donations;
+    }
+
+    struct DonationDetailStruct {
+        address donatur;
+        uint amount;
+        uint payAt;
+    }
+    struct CampaignSummary {
         address creator;
         uint campaignId;
         string nameCampaign;
@@ -54,6 +68,7 @@ contract CrowdFund is Ownable {
 
     // MAPPING
     mapping(address => CrowdFundStruct[]) public crowdFunds;
+    address[] public creators;
 
     // CONSTRUCTOR
     constructor(address _userContract) Ownable(msg.sender) {
@@ -68,15 +83,101 @@ contract CrowdFund is Ownable {
         _;
     }
 
-    // FUNCTION GET ALL CAMPAIGN
-    function getAllCampaign()
+    // FUNCTION GET ALL CAMPAIGN by CREATOR
+    function getAllCampaignByCreator(
+        uint _page,
+        uint _perPage
+    ) public view onlyRegister returns (CampaignSummary[] memory) {
+        CrowdFundStruct[] storage campaigns = crowdFunds[msg.sender];
+        uint totalCampaigns = campaigns.length;
+
+        uint start = _page * _perPage;
+        if (start >= totalCampaigns) {
+            return new CampaignSummary[](0);
+        }
+        uint end = start + _perPage > totalCampaigns
+            ? totalCampaigns
+            : start + _perPage;
+
+        CampaignSummary[] memory result = new CampaignSummary[](end - start);
+
+        for (uint256 i = start; i < end; i++) {
+            result[i - start] = CampaignSummary({
+                creator: campaigns[i].creator,
+                campaignId: campaigns[i].campaignId,
+                nameCampaign: campaigns[i].nameCampaign,
+                description: campaigns[i].description,
+                targetFund: campaigns[i].targetFund,
+                currentFund: campaigns[i].currentFund,
+                deadline: campaigns[i].deadline
+            });
+        }
+
+        return result;
+    }
+
+    // Fungsi untuk mendapatkan total jumlah kampanye by creator (frontend)
+    function getTotalCampaignsByCreator()
         public
         view
         onlyRegister
-        returns (CrowdFundStruct[] memory)
+        returns (uint)
     {
-        CrowdFundStruct[] storage campaigns = crowdFunds[msg.sender];
-        return campaigns;
+        return crowdFunds[msg.sender].length;
+    }
+
+    // FUNCTION GET ALL CAMPAIGN for PUBLIC
+    function getAllCampaign(
+        uint _page,
+        uint _perPage
+    ) public view returns (CrowdFundStruct[] memory) {
+        uint totalCampaigns = 0;
+        for (uint256 i = 0; i < creators.length; i++) {
+            totalCampaigns += crowdFunds[creators[i]].length;
+        }
+
+        uint start = _page * _perPage;
+        if (start >= totalCampaigns) {
+            return new CrowdFundStruct[](0); 
+        }
+        uint end = start + _perPage > totalCampaigns
+            ? totalCampaigns
+            : start + _perPage;
+
+        CrowdFundStruct[] memory result = new CrowdFundStruct[](end - start);
+
+        uint currentIndex = 0;
+        uint resultIndex = 0;
+
+        for (
+            uint256 i = 0;
+            i < creators.length && resultIndex < result.length;
+            i++
+        ) {
+            address creator = creators[i];
+            for (
+                uint256 j = 0;
+                j < crowdFunds[creator].length && resultIndex < result.length;
+                j++
+            ) {
+                if (currentIndex >= start && currentIndex < end) {
+                    result[resultIndex] = crowdFunds[creator][j];
+                    resultIndex++;
+                }
+                currentIndex++;
+            }
+        }
+
+        return result;
+    }
+
+    // Fungsi untuk mendapatkan total jumlah kampanye (frontend)
+    function getTotalCampaigns() public view returns (uint) {
+        uint total = 0;
+        for (uint256 i = 0; i < creators.length; i++) {
+            total += crowdFunds[creators[i]].length;
+        }
+        return total;
     }
 
     // FUNCTION MEMBUAT CAMPAIGN BARU
@@ -90,17 +191,22 @@ contract CrowdFund is Ownable {
 
         uint campaignId = crowdFunds[msg.sender].length + 1;
 
-        CrowdFundStruct memory newCampaign = CrowdFundStruct({
-            creator: msg.sender,
-            campaignId: campaignId,
-            nameCampaign: _nameCampaign,
-            description: _description,
-            targetFund: _targetFund,
-            currentFund: 0,
-            deadline: _deadline
-        });
+        crowdFunds[msg.sender].push();
+        CrowdFundStruct storage newCampaign = crowdFunds[msg.sender][
+            crowdFunds[msg.sender].length - 1
+        ];
 
-        crowdFunds[msg.sender].push(newCampaign);
+        newCampaign.creator = msg.sender;
+        newCampaign.campaignId = campaignId;
+        newCampaign.nameCampaign = _nameCampaign;
+        newCampaign.description = _description;
+        newCampaign.targetFund = _targetFund;
+        newCampaign.currentFund = 0;
+        newCampaign.deadline = _deadline;
+
+        if (crowdFunds[msg.sender].length == 1) {
+            creators.push(msg.sender);
+        }
 
         emit CampaignCreated(
             msg.sender,
@@ -162,7 +268,6 @@ contract CrowdFund is Ownable {
         CrowdFundStruct[] storage campaigns = crowdFunds[msg.sender];
         bool found = false;
 
-
         for (uint256 i = 0; i < campaigns.length; i++) {
             if (campaigns[i].campaignId == _campaignId) {
                 found = true;
@@ -178,4 +283,17 @@ contract CrowdFund is Ownable {
 
         emit CampaignDeleted(_campaignId);
     }
+
+    //  **Donasi**:
+    //  - Pengguna dapat mendonasikan ETH ke kampanye tertentu.
+    //  - Donasi hanya diterima jika kampanye belum melewati batas waktu.
+    //  - Catat jumlah total donasi dan daftar donatur (opsional: simpan alamat donatur dan jumlah donasi).
+
+    // function donate(
+    //     uint _campaignId,
+    //     uint _amount
+    // ) public payable {
+    //     require(_amount > );
+
+    // }
 }

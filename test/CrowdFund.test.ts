@@ -115,7 +115,7 @@ describe('CrowdFund', function () {
         await crowdFund.connect(user).createCampaign("#2", "Description 2", ethers.parseEther("1.5"), Math.floor(Date.now() / 1000) + 86400);
         await crowdFund.connect(user).createCampaign("#3", "Description 3", ethers.parseEther("1"), Math.floor(Date.now() / 1000) + 86400);
 
-        let campaigns = await crowdFund.connect(user).getAllCampaign();
+        let campaigns = await crowdFund.connect(user).getAllCampaignByCreator();
         expect(campaigns.length).to.equal(4);
         
         const _campaignId = 1;
@@ -127,7 +127,7 @@ describe('CrowdFund', function () {
                 _campaignId,
             );
         
-        let newCampaigns = await crowdFund.connect(user).getAllCampaign();
+        let newCampaigns = await crowdFund.connect(user).getAllCampaignByCreator();
         expect(newCampaigns.length).to.equal(3);
     })
 
